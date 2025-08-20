@@ -1,3 +1,4 @@
+// Theme utilities for applying/persisting light/dark mode
 export function getStoredTheme() {
   try { return localStorage.getItem('theme') } catch (_) { return null }
 }

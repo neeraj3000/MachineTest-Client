@@ -2,6 +2,7 @@ import Nav from './Nav'
 import { useEffect } from 'react'
 import { applyTheme, getInitialTheme } from '../lib/theme'
 
+// App shell with sticky header, global theme initialization, and main content container
 export default function Layout({ title, actions, children }) {
   useEffect(() => {
     applyTheme(getInitialTheme())
@@ -10,7 +11,7 @@ export default function Layout({ title, actions, children }) {
     <div>
       <header className="app-header">
         <div className="app-header-inner">
-          <div className="brand">Machine Test</div>
+          <div className="brand" style={{ paddingLeft: 8 }}>List Manager</div>
           <Nav />
         </div>
       </header>

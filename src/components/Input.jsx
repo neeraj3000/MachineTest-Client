@@ -1,3 +1,4 @@
+// Labeled input wrapper that shows validation error text when provided
 export default function Input({ label, error, ...props }) {
   return (
     <div className={`form-field${error ? ' has-error' : ''}`}>

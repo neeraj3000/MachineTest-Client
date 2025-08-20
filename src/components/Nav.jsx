@@ -1,14 +1,17 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { toggleTheme } from '../lib/theme'
 import { useMemo, useState } from 'react'
+import Confirm from './Confirm'
 
+// Top navigation: brand on the left, primary links centered, theme + logout on the right
 export default function Nav() {
   const navigate = useNavigate()
   const user = JSON.parse(localStorage.getItem('user') || '{}')
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [menuOpen] = useState(false)
   const [theme, setTheme] = useState(
     typeof document !== 'undefined' ? (document.documentElement.getAttribute('data-theme') || 'light') : 'light'
   )
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const initials = useMemo(() => {
     const name = user.name || user.email || 'U'
@@ -22,25 +25,16 @@ export default function Nav() {
     setTheme(next)
   }
   return (
-    <nav style={{ marginBottom: 16 }}>
-      <button
-        className="btn btn-ghost nav-toggle"
-        aria-label="Toggle menu"
-        onClick={() => setMenuOpen(v => !v)}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-      </button>
-      <div className={`nav-left ${menuOpen ? 'open' : ''}`}>
-        <NavLink to="/" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
+    <nav>
+      <div className={"nav-left"}>
+        <NavLink to="/" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 6 }}>
             <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" stroke="currentColor" strokeWidth="1.5"/>
           </svg>
           Dashboard
         </NavLink>
         {user.role === 'ADMIN' && <>
-          <NavLink to="/agents" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
+          <NavLink to="/agents" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 6 }}>
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.5"/>
               <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.5"/>
@@ -49,7 +43,7 @@ export default function Nav() {
             </svg>
             Agents
           </NavLink>
-          <NavLink to="/upload" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
+          <NavLink to="/upload" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 6 }}>
               <path d="M12 16V4m0 0 4 4m-4-4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               <rect x="3" y="16" width="18" height="4" rx="1" stroke="currentColor" strokeWidth="1.5"/>
@@ -69,12 +63,21 @@ export default function Nav() {
               <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.6"/>
               <path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41m0-14.14-1.41 1.41M6.34 17.66 4.93 19.07" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
             </svg>
-          )}
+          )}      
         </button>
-        <div className="avatar" title={user.name || user.email || 'User'}>{initials}</div>
-        <button className="btn btn-danger" onClick={() => { if (!confirm('Are you sure you want to logout?')) return; localStorage.clear(); navigate('/login') }}>
+        {/* <div className="avatar" title={user.name || user.email || 'User'}>{initials}</div> */}
+        <button className="btn btn-danger" onClick={() => setConfirmOpen(true)}>
           Logout
         </button>
+        <Confirm
+          open={confirmOpen}
+          title="Log out"
+          message="Are you sure you want to logout?"
+          confirmText="Logout"
+          cancelText="Cancel"
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={() => { setConfirmOpen(false); localStorage.clear(); navigate('/login') }}
+        />
       </div>
     </nav>
   )

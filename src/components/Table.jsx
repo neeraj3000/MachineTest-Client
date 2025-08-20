@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 
+// Simple table with client-side search and pagination; accepts columns and data
 export default function Table({ columns = [], data = [], rowKey, pageSize = 10, searchable = true }) {
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)

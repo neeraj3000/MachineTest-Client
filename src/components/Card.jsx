@@ -1,3 +1,4 @@
+// Generic card container with optional title, actions (right side), and footer areas
 export default function Card({ title, children, footer, actions }) {
   return (
     <div className="card">
