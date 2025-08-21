@@ -4,6 +4,7 @@ import Card from '../components/Card'
 import Input from '../components/Input'
 import Button from '../components/Button'
 import Table from '../components/Table'
+import Confirm from '../components/Confirm'
 import { api } from '../lib/api'
 
 export default function Agents() {
@@ -17,6 +18,9 @@ export default function Agents() {
   const [editForm, setEditForm] = useState({ name: '', email: '', mobile: '', password: '' })
   const [editLoading, setEditLoading] = useState(false)
   const [editErrors, setEditErrors] = useState({})
+
+  // Confirmation modal state
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, agent: null })
 
   async function load() {
     try {
@@ -32,7 +36,7 @@ export default function Agents() {
   }
 
   function validateE164(phone) {
-    return /^\+[0-9]{10,15}$/.test(String(phone))
+    return /^[0-9]{10}$/.test(String(phone))
   }
 
   function validateStrongPassword(pwd) {
@@ -45,7 +49,7 @@ export default function Agents() {
     if (values.email && !validateEmail(values.email)) errs.email = 'Invalid email'
     if (!values.email) errs.email = 'Email is required'
     if (!values.mobile) errs.mobile = 'Mobile is required'
-    else if (!validateE164(values.mobile)) errs.mobile = 'Use format +15551234567'
+    else if (!validateE164(values.mobile)) errs.mobile = 'Use format 70323*****'
     if (!isUpdate) {
       if (!values.password) errs.password = 'Password is required'
       else if (!validateStrongPassword(values.password)) errs.password = 'Min 8 chars incl. Aa1!'
@@ -90,12 +94,24 @@ export default function Agents() {
     } catch (e) { setError(e.message) } finally { setEditLoading(false) }
   }
 
-  async function handleDelete(agent) {
-    if (!confirm(`Delete agent ${agent.name}? This will remove their tasks too.`)) return
+  function handleDeleteClick(agent) {
+    setConfirmDelete({ open: true, agent })
+  }
+
+  async function confirmDeleteAgent() {
+    if (!confirmDelete.agent) return
     try {
-      await api(`/agents/${agent.id || agent._id}`, { method: 'DELETE' })
+      await api(`/agents/${confirmDelete.agent.id || confirmDelete.agent._id}`, { method: 'DELETE' })
       load()
-    } catch (e) { setError(e.message) }
+    } catch (e) { 
+      setError(e.message) 
+    } finally {
+      setConfirmDelete({ open: false, agent: null })
+    }
+  }
+
+  function cancelDelete() {
+    setConfirmDelete({ open: false, agent: null })
   }
 
   return (
@@ -104,7 +120,7 @@ export default function Agents() {
         <form onSubmit={handleAdd} style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(4, 1fr)' }}>
           <Input label="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} error={formErrors.name} required />
           <Input label="Email" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} error={formErrors.email} required />
-          <Input label="Mobile" value={form.mobile} onChange={e => setForm({ ...form, mobile: e.target.value })} placeholder="+15551234567" error={formErrors.mobile} required />
+          <Input label="Mobile" value={form.mobile} onChange={e => setForm({ ...form, mobile: e.target.value })} placeholder="70323*****" error={formErrors.mobile} required />
           <Input label="Password" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} error={formErrors.password} required />
           <div style={{ gridColumn: 'span 4' }}>
             {error && <div className="field-error" style={{ marginBottom: 8 }}>{error}</div>}
@@ -135,7 +151,7 @@ export default function Agents() {
             { header: 'Actions', key: 'actions', render: (row) => (
               <div style={{ display: 'flex', gap: 8 }}>
                 <Button variant="ghost" onClick={() => startEdit(row)}>Edit</Button>
-                <Button variant="danger" onClick={() => handleDelete(row)}>Delete</Button>
+                <Button variant="danger" onClick={() => handleDeleteClick(row)}>Delete</Button>
               </div>
             ) }
           ]}
@@ -143,6 +159,16 @@ export default function Agents() {
           pageSize={8}
         />
       </Card>
+
+      <Confirm 
+        open={confirmDelete.open}
+        title="Delete Agent"
+        message={confirmDelete.agent ? `Are you sure you want to delete agent "${confirmDelete.agent.name}"? This will also remove all their assigned tasks.` : ''}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDeleteAgent}
+        onCancel={cancelDelete}
+      />
     </Layout>
   )
 }
